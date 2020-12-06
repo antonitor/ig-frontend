@@ -5,9 +5,11 @@ import { useParams, useHistory } from "react-router-dom";
 import * as Yup from "yup";
 import Post from "../components/Posts";
 import { UserContext } from "../context/UserContext";
+import { LikesContext } from "../context/LikesContext";
 
 const SinglePost = () => {
   const { user } = useContext(UserContext);
+  const { likesGiven, likesReloader } = useContext(LikesContext);
   const [post, setPost] = useState({});
   const [loading, setLoading] = useState(true);
   const [edit, setEdit] = useState(false);
@@ -15,11 +17,20 @@ const SinglePost = () => {
   const history = useHistory();
   const POST_URL = `http://localhost:1337/posts/${params.id}`;
 
+  const isPostAlreadyLiked = (() => {
+    console.log(likesGiven);
+    return (
+      likesGiven &&
+      likesGiven.find((like) => like.post && like.post.id == params.id)
+    );
+  })();
+
+  console.log("IS POST ALREADY LIKED, ", isPostAlreadyLiked);
+
   useEffect(() => {
     const fetchPost = async () => {
       try {
         const response = await Axios.get(POST_URL);
-        console.log("USE EFFECT", response.data);
         setPost(response.data);
       } catch (error) {
         console.log(error);
@@ -29,19 +40,20 @@ const SinglePost = () => {
     };
     if (!edit) {
       fetchPost();
+      likesReloader();
     }
   }, [edit]);
 
   const handleDelete = async () => {
+    //SHOULD DELETE LIKES RECEIVED ASWELL IN CONTROLLER
     try {
       if (!user) {
         console.log("NOT LOGGED IN");
         return;
       }
-      const response = await Axios.delete(POST_URL, {
+      await Axios.delete(POST_URL, {
         headers: { Authorization: `bearer ${user.jwt}` },
       });
-      console.log(response.data);
       history.push("/");
     } catch (error) {
       console.log(error);
@@ -50,7 +62,7 @@ const SinglePost = () => {
 
   const handleLike = async () => {
     try {
-      const response = await Axios.post(
+      await Axios.post(
         "http://localhost:1337/likes",
         {
           post: parseInt(params.id),
@@ -59,7 +71,19 @@ const SinglePost = () => {
           headers: { Authorization: `bearer ${user.jwt}` },
         }
       );
-      console.log("LIKE RESPONSE: ", response);
+    } catch (error) {
+      console.log("ERROR LIKE, ", error.response.data.message);
+    } finally {
+      setEdit(true);
+      setEdit(false); //REFRESSH XDDD
+    }
+  };
+
+  const handleRemoveLike = async () => {
+    try {
+      await Axios.delete(`http://localhost:1337/likes/${params.id}`, {
+        headers: { Authorization: `bearer ${user.jwt}` },
+      });
     } catch (error) {
       console.log("ERROR LIKE, ", error.response.data.message);
     } finally {
@@ -78,7 +102,12 @@ const SinglePost = () => {
               <Post post={post} />
               {user && (
                 <>
-                  <button onClick={handleLike}>Like</button>
+                  {!isPostAlreadyLiked && (
+                    <button onClick={handleLike}>Like</button>
+                  )}
+                  {isPostAlreadyLiked && (
+                    <button onClick={handleRemoveLike}>Remove Like</button>
+                  )}
                 </>
               )}
 
