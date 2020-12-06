@@ -21,7 +21,7 @@ const SinglePost = () => {
     console.log(likesGiven);
     return (
       likesGiven &&
-      likesGiven.find((like) => like.post && like.post.id == params.id)
+      likesGiven.find((like) => like.post && like.post.id == params.id) //eslint-disable-line
     );
   })();
 
@@ -42,7 +42,7 @@ const SinglePost = () => {
       fetchPost();
       likesReloader();
     }
-  }, [edit]);
+  }, [edit]); //eslint-disable-line
 
   const handleDelete = async () => {
     //SHOULD DELETE LIKES RECEIVED ASWELL IN CONTROLLER

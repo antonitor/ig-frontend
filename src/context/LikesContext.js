@@ -33,7 +33,7 @@ const LikesContextProvider = ({ children }) => {
 
   useEffect(() => {
     likesReloader();
-  }, [user]);
+  }, [user]); //eslint-disable-line
 
   return (
     <LikesContext.Provider value={{ likesGiven, likesReceived, likesReloader }}>

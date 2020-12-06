@@ -12,7 +12,7 @@ const Login = (props) => {
     if (user) {
       history.push("/");
     }
-  }, [user]);
+  }, [user]); //eslint-disable-line
   const API_URL = "http://localhost:1337/auth/local";
   return (
     <div>
